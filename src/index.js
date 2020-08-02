@@ -1,8 +1,10 @@
 import { vs, fs } from './shaders';
+import { range, createShader, createProgram } from './utils';
 import * as twgl from 'twgl.js';
 
 const TARGET_TEXTURE_WIDTH = 256;
 const TARGET_TEXTURE_HEIGHT = 1;
+
 
 export function createRgbaHistogram(rgbaData, imageWidth, imageHeight) {
 
@@ -21,6 +23,8 @@ export function createRgbaHistogram(rgbaData, imageWidth, imageHeight) {
             reject(new Error("histogram.gl requires the OES_texture_float WebGL extension."));
         }
 
+        const pixelIds = Float32Array.from(range(imageWidth * imageHeight));
+
         const imageTexture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, imageTexture);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -29,21 +33,21 @@ export function createRgbaHistogram(rgbaData, imageWidth, imageHeight) {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, imageWidth, imageHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, rgbaData);
 
-        const tex = imageTexture;
-        console.log(tex);
+        // Create GLSL shaders, upload the GLSL source, compile the shaders.
+        const vertexShader = createShader(gl, gl.VERTEX_SHADER, vs);
+        const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fs);
 
-        var histProgramInfo = twgl.createProgramInfo(gl, [vs, fs]);
-        var pixelIds = [];
-        var numIds = imageWidth * imageHeight;
+        // Link the two shaders into a program.
+        const program = createProgram(gl, vertexShader, fragmentShader);
+        
 
-        // Just fill a buffer with an incrementing count. If we wanted to make this
-        // generic we'd re-use this buffer and just make it bigger if we were
-        // processing a bigger image
-        for (var i = 0; i < numIds; ++i) {
-            pixelIds.push(i);
-        }
+
+
+        var histProgramInfo = twgl.createProgramInfoFromProgram(gl, program);
+        
+        
         var pixelIdBufferInfo = twgl.createBufferInfoFromArrays(gl, {
-            pixelId: { size: 1, data: new Float32Array(pixelIds), },
+            pixelId: { size: 1, data: pixelIds, },
         });
 
         // make a 256x1 RGBA floating point texture and attach to a framebuffer
@@ -75,7 +79,7 @@ export function createRgbaHistogram(rgbaData, imageWidth, imageHeight) {
         for (var channel = 0; channel < 4; ++channel) {
             gl.colorMask(channel === 0, channel === 1, channel === 2, channel === 3);
             twgl.setUniforms(histProgramInfo, {
-            u_texture: tex,
+            u_texture: imageTexture,
             u_colorMult: [
                 channel === 0 ? 1 : 0,
                 channel === 1 ? 1 : 0,
@@ -86,11 +90,17 @@ export function createRgbaHistogram(rgbaData, imageWidth, imageHeight) {
             });
             twgl.drawBufferInfo(gl, gl.POINTS, pixelIdBufferInfo);
         }
-        const histogramData = new Float32Array(256 * 1 * 4);
-        gl.readPixels(0, 0, 256, 1, gl.RGBA, gl.FLOAT, histogramData);
 
+
+
+
+
+
+
+
+
+        const histogramData = new Float32Array(TARGET_TEXTURE_WIDTH * TARGET_TEXTURE_HEIGHT * 4);
+        gl.readPixels(0, 0, TARGET_TEXTURE_WIDTH, TARGET_TEXTURE_HEIGHT, gl.RGBA, gl.FLOAT, histogramData);
         resolve(histogramData);
-
-
     });
 }
