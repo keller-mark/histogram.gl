@@ -1,0 +1,41 @@
+{
+  "name": "histogram.gl",
+  "author": "Mark Keller",
+  "repository": "https://github.com/keller-mark/histogram.gl",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": false,
+  "devDependencies": {
+    "@babel/core": "^7.9.0",
+    "@babel/preset-env": "^7.8.4",
+    "@rollup/plugin-babel": "^5.0.0",
+    "@rollup/plugin-commonjs": "^11.1.0",
+    "@rollup/plugin-html": "^0.1.1",
+    "@rollup/plugin-json": "^4.0.1",
+    "@rollup/plugin-node-resolve": "^7.0.0",
+    "babel-jest": "^25.1.0",
+    "documentation": "^12.1.4",
+    "eslint": "^6.8.0",
+    "jest": "^25.1.0",
+    "jest-webgl-canvas-mock": "^0.2.3",
+    "rollup": "^1.29.1",
+    "rollup-plugin-livereload": "^1.0.4",
+    "rollup-plugin-scss": "^2.1.0",
+    "rollup-plugin-serve": "^1.0.1",
+    "rollup-plugin-terser": "^5.2.0",
+    "rollup-plugin-visualizer": "^3.3.1",
+    "sass": "^1.25.0",
+    "twgl.js": "^4.15.2"
+  },
+  "scripts": {
+    "start": "rollup -c rollup.demo.config.js --environment NODE_ENV:development --watch",
+    "build": "yarn build-demo && yarn build-pkg",
+    "build-demo": "rollup -c rollup.demo.config.js --environment NODE_ENV:production",
+    "build-pkg": "rollup -c rollup.pkg.config.js --environment NODE_ENV:production",
+    "test": "jest -c jest.config.js",
+    "docs": "documentation build src/** -f html -o build-docs --config .documentation.yml"
+  },
+  "main": "build-pkg/index.umd.js",
+  "unpkg": "build-pkg/index.min.js",
+  "module": "build-pkg/index.esm.js"
+}
