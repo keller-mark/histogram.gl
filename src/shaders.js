@@ -26,7 +26,7 @@ void main() {
 `;
 
 export const fs = `
-precision mediump float;
+precision highp float;
 
 void main() {
   gl_FragColor = vec4(1);

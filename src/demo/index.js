@@ -1,8 +1,7 @@
 import { createRgbaHistogram } from '../index';
 import './index.scss';
 
-// const imageUrl = "https://gist.githubusercontent.com/mbostock/9511ae067889eefa5537eedcbbf87dab/raw/944b6e5fe8dd535d6381b93d88bf4a854dac53d4/mona-lisa.jpg";
-const imageUrl = "https://farm1.staticflickr.com/293/18414763798_cb8ebded43_m_d.jpg";
+const imageUrl = "https://gist.githubusercontent.com/mbostock/9511ae067889eefa5537eedcbbf87dab/raw/944b6e5fe8dd535d6381b93d88bf4a854dac53d4/mona-lisa.jpg";
 
 // Reference: https://observablehq.com/@mbostock/image-histogram/2
 function getImageData(image, width = image.naturalWidth, height = image.naturalHeight) {
@@ -16,8 +15,8 @@ function getImageData(image, width = image.naturalWidth, height = image.naturalH
     return imageData;
 }
 
-function getChannelData(imageData, offset = 0) {
-    const channelData = new Uint8Array(imageData.length / 4);
+function getChannelData(imageData, offset = 0, float = false) {
+    const channelData = (float ? new Float32Array(imageData.length / 4) : new Uint8Array(imageData.length / 4));
     for(let i = 0; i < channelData.length; i++) {
       channelData[i] = imageData[i * 4 + offset];
     }
@@ -44,9 +43,15 @@ new Promise((resolve, reject) => {
     console.log("Histogram Data");
     console.log(histogramData);
 
-    const pre = document.createElement("pre");
-    pre.innerHTML = histogramData;
-    document.querySelector("#root").appendChild(pre);
+    const mlImage = document.createElement("img");
+    mlImage.crossOrigin = true;
+    mlImage.src = imageUrl;
+    mlImage.width = 200;
+    document.querySelector("#root").appendChild(mlImage);
+
+    const header = document.createElement("h2");
+    header.innerHTML = "histogram.gl result";
+    document.querySelector("#root").appendChild(header);
 
 
     const canvas = document.createElement("canvas");
@@ -56,20 +61,34 @@ new Promise((resolve, reject) => {
     canvas.height = 200;
 
     const ctx = canvas.getContext("2d");
+    // Turn transparency on
+    ctx.globalAlpha = 0.4;
 
-    const redHistogramData = Array.from(getChannelData(histogramData, 2));
-    const redMax = Math.max(...redHistogramData);
-    console.log(redHistogramData);
-    console.log(redMax);
+    const channels = ["red", "green", "blue"];
 
-    redHistogramData.forEach((d, i) => {
-        const height = (d / redMax) * canvas.height;
-        const x = i / 256 * canvas.width;
-        ctx.beginPath();
-        ctx.rect(x, canvas.height - height, 1 / 256 * canvas.width, canvas.height);
-        ctx.fillStyle = "green";
-        ctx.opacity = 0.5;
-        ctx.fill();
+    channels.forEach((channel, channelOffset) => {
+        const channelHistogramData = Array.from(getChannelData(histogramData, channelOffset, true));
+        const channelHistogramMax = Math.max(...channelHistogramData);
+
+        channelHistogramData.forEach((d, i) => {
+            const height = (d / channelHistogramMax) * canvas.height;
+            const x = i / 256 * canvas.width;
+            ctx.beginPath();
+            ctx.rect(x, canvas.height - height, 1 / 256 * canvas.width, canvas.height);
+            ctx.fillStyle = channel;
+            ctx.fill();
+        });
     });
+
+    const header2 = document.createElement("h2");
+    header2.innerHTML = "ground truth";
+    document.querySelector("#root").appendChild(header2);
+
+    const gtImage = document.createElement("img");
+    gtImage.crossOrigin = true;
+    gtImage.src = "https://user-images.githubusercontent.com/7525285/89136595-7bafef80-d502-11ea-97c2-c4145a84c1f9.png";
+    document.querySelector("#root").appendChild(gtImage);
+
+    
 });
 
