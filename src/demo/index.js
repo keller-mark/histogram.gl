@@ -12,7 +12,7 @@ function getImageData(image, width = image.naturalWidth, height = image.naturalH
     const context = canvas.getContext("2d");
     context.drawImage(image, 0, 0, width, height);
     const imageData = context.getImageData(0, 0, width, height).data;
-    return imageData;
+    return Uint8Array.from(imageData);
 }
 
 function getChannelData(imageData, offset = 0, float = false) {
