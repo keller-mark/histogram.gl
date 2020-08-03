@@ -86,7 +86,7 @@ new Promise((resolve, reject) => {
 
     const gtImage = document.createElement("img");
     gtImage.crossOrigin = true;
-    gtImage.src = "https://user-images.githubusercontent.com/7525285/89136595-7bafef80-d502-11ea-97c2-c4145a84c1f9.png";
+    gtImage.src = "https://raw.githubusercontent.com/keller-mark/histogram.gl/master/screenshot.png";
     document.querySelector("#root").appendChild(gtImage);
 
     
