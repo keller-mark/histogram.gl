@@ -32,6 +32,7 @@ new Promise((resolve, reject) => {
     image.src = imageUrl;
 })
 .then((image) => {
+    console.log(image);
     // Get the image data Uint8ClampedArray from the image object.
     const imageData = getImageData(image);
     // Get the red channel.
@@ -45,5 +46,29 @@ new Promise((resolve, reject) => {
     const pre = document.createElement("pre");
     pre.innerHTML = histogramData;
     document.querySelector("#root").appendChild(pre);
+
+
+    const canvas = document.createElement("canvas");
+    document.querySelector("#root").appendChild(canvas);
+
+    canvas.width = 400;
+    canvas.height = 200;
+
+    const ctx = canvas.getContext("2d");
+
+    const redHistogramData = Array.from(getChannelData(histogramData, 0));
+    const redMax = Math.max(...redHistogramData);
+    console.log(redHistogramData);
+    console.log(redMax);
+
+    redHistogramData.forEach((d, i) => {
+        const height = (d / redMax) * canvas.height;
+        const x = i / 256 * canvas.width;
+        ctx.beginPath();
+        ctx.rect(x, canvas.height - height, 1 / 256 * canvas.width, canvas.height);
+        ctx.fillStyle = "red";
+        ctx.opacity = 0.5;
+        ctx.fill();
+    });
 });
 

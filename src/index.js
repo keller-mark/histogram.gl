@@ -1,10 +1,7 @@
 import { vs, fs } from './shaders';
 import { range, createShader, createProgram } from './utils';
-import * as twgl from 'twgl.js';
-
 const TARGET_TEXTURE_WIDTH = 256;
 const TARGET_TEXTURE_HEIGHT = 1;
-
 
 export function createRgbaHistogram(rgbaData, imageWidth, imageHeight) {
 
@@ -18,10 +15,15 @@ export function createRgbaHistogram(rgbaData, imageWidth, imageHeight) {
 
         // Get WebGL context.
         const gl = canvas.getContext("webgl");
-        const ext = gl.getExtension("OES_texture_float");
-        if (!ext) {
-            reject(new Error("histogram.gl requires the OES_texture_float WebGL extension."));
-        }
+
+        const exts = ["OES_texture_float", "EXT_float_blend", "EXT_color_buffer_float", "WEBGL_color_buffer_float"];
+
+        exts.forEach((extName) => {
+            let ext = gl.getExtension(extName);
+            if (!ext) {
+                console.warn(`histogram.gl did not find the ${extName} WebGL extension.`);
+            }
+        });
 
         const pixelIds = Float32Array.from(range(imageWidth * imageHeight));
 
@@ -40,26 +42,33 @@ export function createRgbaHistogram(rgbaData, imageWidth, imageHeight) {
         // Link the two shaders into a program.
         const program = createProgram(gl, vertexShader, fragmentShader);
         
+        // Create the pixelIds buffer from the pixelIds array.
+        const pixelIdsBuffer = gl.createBuffer();
+        // Bind the buffer.
+        gl.bindBuffer(gl.ARRAY_BUFFER, pixelIdsBuffer);
+        // Pass the data to the bound buffer.
+        gl.bufferData(gl.ARRAY_BUFFER, pixelIds, gl.STATIC_DRAW);
+
+        // Create texture to render to.
+        const targetTexture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, targetTexture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, TARGET_TEXTURE_WIDTH, TARGET_TEXTURE_HEIGHT, 0, gl.RGBA, gl.FLOAT, null);
 
 
+        // Create frame buffer target.
+        const targetFramebuffer = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, targetFramebuffer);
 
-        var histProgramInfo = twgl.createProgramInfoFromProgram(gl, program);
-        
-        
-        var pixelIdBufferInfo = twgl.createBufferInfoFromArrays(gl, {
-            pixelId: { size: 1, data: pixelIds, },
-        });
+        const attachmentPoint = gl.COLOR_ATTACHMENT0;
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, targetTexture, 0);
 
-        // make a 256x1 RGBA floating point texture and attach to a framebuffer
-        var sumFbi = twgl.createFramebufferInfo(gl, [
-            { type: gl.FLOAT,
-            min: gl.NEAREST,
-            mag: gl.NEAREST,
-            wrap: gl.CLAMP_TO_EDGE,
-            },
-        ], 256, 1);
+
         if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
-            alert("can't render to floating point texture");
+            reject(new Error("can't render to floating point texture"));
         }
 
         // Render sum of each color
@@ -71,33 +80,45 @@ export function createRgbaHistogram(rgbaData, imageWidth, imageHeight) {
         // incremented by 1.
         gl.blendFunc(gl.ONE, gl.ONE);
         gl.enable(gl.BLEND);
-        gl.useProgram(histProgramInfo.program);
-        twgl.setBuffersAndAttributes(gl, histProgramInfo, pixelIdBufferInfo);
-        twgl.bindFramebufferInfo(gl, sumFbi);
+        gl.useProgram(program);
+        
+
+        // Look up where the vertex data needs to go.
+        const pixelIdsAttributeLocation = gl.getAttribLocation(program, "pixelId");
+        // Turn on the attribute.
+        gl.enableVertexAttribArray(pixelIdsAttributeLocation);
+        // Tell the attribute how to get data out of the buffer (ARRAY_BUFFER).
+        gl.vertexAttribPointer(pixelIdsAttributeLocation, 1, gl.FLOAT, false, 0, 0);
+
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, targetFramebuffer);
+        gl.viewport(0, 0, TARGET_TEXTURE_WIDTH, TARGET_TEXTURE_HEIGHT);
+
         // render each channel separately since we can only position each POINT
         // for one channel at a time.
+        let unit = 0;
         for (var channel = 0; channel < 4; ++channel) {
             gl.colorMask(channel === 0, channel === 1, channel === 2, channel === 3);
-            twgl.setUniforms(histProgramInfo, {
-            u_texture: imageTexture,
-            u_colorMult: [
+            
+            const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
+            gl.uniform2fv(resolutionLocation, [imageWidth, imageHeight]);
+
+            const colorMultLocation = gl.getUniformLocation(program, "u_colorMult");
+            gl.uniform4fv(colorMultLocation, [
                 channel === 0 ? 1 : 0,
                 channel === 1 ? 1 : 0,
                 channel === 2 ? 1 : 0,
                 channel === 3 ? 1 : 0,
-            ],
-            u_resolution: [imageWidth, imageHeight],
-            });
-            twgl.drawBufferInfo(gl, gl.POINTS, pixelIdBufferInfo);
+            ]);
+
+            const imageTextureLocation = gl.getUniformLocation(program, "u_texture");
+            
+            gl.activeTexture(gl.TEXTURE0 + unit);
+            gl.bindTexture(gl.TEXTURE_2D, imageTexture);
+            gl.uniform1i(imageTextureLocation, unit++);
+
+            gl.drawArrays(gl.POINTS, 0, pixelIds.length);
         }
-
-
-
-
-
-
-
-
 
         const histogramData = new Float32Array(TARGET_TEXTURE_WIDTH * TARGET_TEXTURE_HEIGHT * 4);
         gl.readPixels(0, 0, TARGET_TEXTURE_WIDTH, TARGET_TEXTURE_HEIGHT, gl.RGBA, gl.FLOAT, histogramData);

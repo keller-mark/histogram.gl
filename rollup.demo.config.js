@@ -39,9 +39,6 @@ const baseConfig = {
         // We want sourcemap files to be created for debugging purposes.
         // https://rollupjs.org/guide/en/#outputsourcemap
         sourcemap: true,
-        globals: {
-            'twgl.js': 'twgl'
-        }
     },
     plugins: [
         // Tell Rollup how to resolve packages in node_modules.
@@ -89,8 +86,7 @@ const baseConfig = {
                 });
             }
         })
-    ],
-    external: ['twgl.js']
+    ]
 };
 
 const devConfig = {

@@ -12,7 +12,6 @@ export function htmlFromTemplate({ title, publicPath, nodeEnv, cssFile, jsFile }
         
         <div id="root"></div>
         
-        <script crossorigin src="https://twgljs.org/dist/twgl-full.min.js"></script>
         <script type="text/javascript" src="${publicPath}${jsFile}"></script>
     </body>
 </html>`;

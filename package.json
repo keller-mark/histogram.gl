@@ -24,8 +24,7 @@
     "rollup-plugin-serve": "^1.0.1",
     "rollup-plugin-terser": "^5.2.0",
     "rollup-plugin-visualizer": "^3.3.1",
-    "sass": "^1.25.0",
-    "twgl.js": "^4.15.2"
+    "sass": "^1.25.0"
   },
   "scripts": {
     "start": "rollup -c rollup.demo.config.js --environment NODE_ENV:development --watch",
