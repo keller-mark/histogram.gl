@@ -6,6 +6,8 @@ yarn add histogram.gl
 npm install histogram.gl --save
 ```
 
+Demo: https://keller-mark.github.io/histogram.gl/
+
 Example:
 
 ```js
