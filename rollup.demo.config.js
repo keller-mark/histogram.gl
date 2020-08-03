@@ -74,7 +74,7 @@ const baseConfig = {
         }),
         html({
             title: pkg.name,
-            publicPath: '/',
+            publicPath: '/histogram.gl/',
             fileName: OUTPUT_HTML,
             template: ({ publicPath, title }) => {
                 return htmlFromTemplate({
