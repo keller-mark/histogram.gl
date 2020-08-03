@@ -61,7 +61,6 @@ new Promise((resolve, reject) => {
     canvas.height = 200;
 
     const ctx = canvas.getContext("2d");
-    // Turn transparency on
     ctx.globalAlpha = 0.4;
 
     const channels = ["red", "green", "blue"];
@@ -81,14 +80,12 @@ new Promise((resolve, reject) => {
     });
 
     const header2 = document.createElement("h2");
-    header2.innerHTML = "ground truth";
+    header2.innerHTML = "ground truth (macOS preview screenshot)";
     document.querySelector("#root").appendChild(header2);
 
     const gtImage = document.createElement("img");
     gtImage.crossOrigin = true;
     gtImage.src = "https://raw.githubusercontent.com/keller-mark/histogram.gl/master/screenshot.png";
     document.querySelector("#root").appendChild(gtImage);
-
-    
 });
 
