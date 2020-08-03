@@ -78,7 +78,10 @@ export function createRgbaHistogram(rgbaData, imageWidth, imageHeight) {
         // we're just going to render vec4(1,1,1,1). This blend function will
         // mean each time we render to a specific point that point will get
         // incremented by 1.
+        gl.blendEquation(gl.FUNC_ADD);
         gl.blendFunc(gl.ONE, gl.ONE);
+        gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        gl.disable(gl.DEPTH_TEST);
         gl.enable(gl.BLEND);
         gl.useProgram(program);
         
@@ -93,6 +96,8 @@ export function createRgbaHistogram(rgbaData, imageWidth, imageHeight) {
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, targetFramebuffer);
         gl.viewport(0, 0, TARGET_TEXTURE_WIDTH, TARGET_TEXTURE_HEIGHT);
+
+        gl.clear(gl.COLOR_BUFFER_BIT);
 
         // render each channel separately since we can only position each POINT
         // for one channel at a time.
@@ -118,6 +123,8 @@ export function createRgbaHistogram(rgbaData, imageWidth, imageHeight) {
             gl.uniform1i(imageTextureLocation, unit++);
 
             gl.drawArrays(gl.POINTS, 0, pixelIds.length);
+            // Flush the buffer just to be sure everything is rendered to the texture.
+            gl.flush();
         }
 
         const histogramData = new Float32Array(TARGET_TEXTURE_WIDTH * TARGET_TEXTURE_HEIGHT * 4);

@@ -1,7 +1,8 @@
 import { createRgbaHistogram } from '../index';
 import './index.scss';
 
-const imageUrl = "https://gist.githubusercontent.com/mbostock/9511ae067889eefa5537eedcbbf87dab/raw/944b6e5fe8dd535d6381b93d88bf4a854dac53d4/mona-lisa.jpg";
+// const imageUrl = "https://gist.githubusercontent.com/mbostock/9511ae067889eefa5537eedcbbf87dab/raw/944b6e5fe8dd535d6381b93d88bf4a854dac53d4/mona-lisa.jpg";
+const imageUrl = "https://farm1.staticflickr.com/293/18414763798_cb8ebded43_m_d.jpg";
 
 // Reference: https://observablehq.com/@mbostock/image-histogram/2
 function getImageData(image, width = image.naturalWidth, height = image.naturalHeight) {
@@ -56,7 +57,7 @@ new Promise((resolve, reject) => {
 
     const ctx = canvas.getContext("2d");
 
-    const redHistogramData = Array.from(getChannelData(histogramData, 0));
+    const redHistogramData = Array.from(getChannelData(histogramData, 2));
     const redMax = Math.max(...redHistogramData);
     console.log(redHistogramData);
     console.log(redMax);
@@ -66,7 +67,7 @@ new Promise((resolve, reject) => {
         const x = i / 256 * canvas.width;
         ctx.beginPath();
         ctx.rect(x, canvas.height - height, 1 / 256 * canvas.width, canvas.height);
-        ctx.fillStyle = "red";
+        ctx.fillStyle = "green";
         ctx.opacity = 0.5;
         ctx.fill();
     });
