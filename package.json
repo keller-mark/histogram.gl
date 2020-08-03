@@ -2,7 +2,7 @@
   "name": "histogram.gl",
   "author": "Mark Keller",
   "repository": "https://github.com/keller-mark/histogram.gl",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "license": "MIT",
   "private": false,
   "devDependencies": {
