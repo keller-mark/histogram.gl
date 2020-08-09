@@ -1,5 +1,5 @@
 [![npm](https://img.shields.io/npm/v/histogram.gl)](https://www.npmjs.com/package/histogram.gl)
-![npm bundle size](https://img.shields.io/bundlephobia/min/histogram.gl)
+[![npm bundle size](https://img.shields.io/bundlephobia/min/histogram.gl)](https://unpkg.com/browse/histogram.gl/)
 
 # histogram.gl
 
