@@ -1,4 +1,5 @@
 ![npm](https://img.shields.io/npm/v/histogram.gl)
+![npm bundle size](https://img.shields.io/bundlephobia/min/histogram.gl)
 
 # histogram.gl
 
